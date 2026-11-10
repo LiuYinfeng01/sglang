@@ -42,23 +42,15 @@ from sglang.multimodal_gen.runtime.utils.logging_utils import init_logger
 from sglang.srt.layers.amx_utils import _amx_process_weight_after_loading
 from sglang.srt.layers.quantization.compressed_tensors.utils import (
     AiterHipblaslt,
-    rocm_aiter_swizzle_hipb_unquantized_gemm
+    rocm_aiter_swizzle_hipb_unquantized_gemm,
 )
-from sglang.srt.utils import (
-    cpu_has_amx_support,
-    get_bool_env_var,
-    is_cpu,
-    is_hip
-)
+from sglang.srt.utils import cpu_has_amx_support, get_bool_env_var, is_cpu, is_hip
 from sglang.srt.environ import envs
 
 _is_cpu_amx_available = cpu_has_amx_support()
 _is_hip = is_hip()
 _is_cpu = is_cpu()
 _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
-
-if _use_aiter:
-    from aiter.ops.shuffle import shuffle_weight
 
 logger = init_logger(__name__)
 
@@ -101,6 +93,7 @@ def _use_qwen_image_a8w8_gemm(prefix: str) -> bool:
         and envs.SGLANG_QWEN_IMAGE_A8W8_GEMM.get()
         and any(fnmatch(prefix, pattern) for pattern in _qwen_image_a8w8_patterns())
     )
+
 
 WEIGHT_LOADER_V2_SUPPORTED = [
     "CompressedTensorsLinearMethod",
@@ -211,7 +204,7 @@ class UnquantizedLinearMethod(LinearMethodBase):
         set_weight_attrs(weight, extra_weight_attrs)
 
     def process_weights_after_loading(self, layer: torch.nn.Module) -> None:
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if _is_cpu and _is_cpu_amx_available:
             _amx_process_weight_after_loading(layer, ["weight"])
 
@@ -236,9 +229,8 @@ class UnquantizedLinearMethod(LinearMethodBase):
                     self._qwen_image_a8w8_gemm = False
                     return
 
-                if (
-                    not _qwen_image_a8w8_hipb_initialized
-                    and hasattr(aiter, "hipb_create_extension")
+                if not _qwen_image_a8w8_hipb_initialized and hasattr(
+                    aiter, "hipb_create_extension"
                 ):
                     aiter.hipb_create_extension()
                     _qwen_image_a8w8_hipb_initialized = True
@@ -277,8 +269,6 @@ class UnquantizedLinearMethod(LinearMethodBase):
                 self._aiter_trans_weight = True
 
             layer.weight = Parameter(shuffled_weight.data, requires_grad=False)
-
-
 
     def apply(
         self, layer: torch.nn.Module, x: torch.Tensor, bias: torch.Tensor | None = None

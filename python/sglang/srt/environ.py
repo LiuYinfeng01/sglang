@@ -308,6 +308,9 @@ class Envs:
     SGLANG_QWEN_IMAGE_A8W8_GEMM = EnvBool(False)
     SGLANG_QWEN_IMAGE_A8W8_GEMM_PATTERNS = EnvStr("")
     SGLANG_QWEN_IMAGE_FUSED_QKV = EnvBool(False)
+    # Qwen-Image FP8 attention mode: -1=disabled, 0=per-tensor, 1=per-(batch, head).
+    SGLANG_QWEN_IMAGE_FP8_ATTN_MODE = EnvInt(-1)
+    SGLANG_QWEN_IMAGE_BF16_ATTN_LAYERS = EnvStr("0,42,47,57-59")
 
     # NPU
     SGLANG_NPU_DISABLE_ACL_FORMAT_WEIGHT = EnvBool(False)
